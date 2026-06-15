@@ -8,7 +8,8 @@ from tkinter import filedialog, messagebox, scrolledtext, ttk
 from logic.processor import RepositoryProcessor
 from logic.config import (
     DEFAULT_MAX_SPLIT_SIZE_MB, DEFAULT_MAX_TOKENS, 
-    NOTEBOOKLM_HEADER_TEMPLATE, EDITABLE_EXTENSIONS, DEFAULT_SELECTED_EXTENSIONS
+    NOTEBOOKLM_HEADER_TEMPLATE, ODOO_HEADER_TEMPLATE,
+    EDITABLE_EXTENSIONS, DEFAULT_SELECTED_EXTENSIONS, ODOO_SELECTED_EXTENSIONS
 )
 from datetime import datetime
 
@@ -38,6 +39,8 @@ class RepoToMDApp:
         
         self.collect_binaries_var = tk.BooleanVar(value=True)
         self.single_file_var = tk.BooleanVar(value=False)
+        self.notebooklm_var = tk.BooleanVar(value=False)
+        self.odoo_var = tk.BooleanVar(value=False)
         self.user_edited_output = False
 
         self.setup_styles()
@@ -185,8 +188,14 @@ class RepoToMDApp:
         self.tokens_var = tk.StringVar(value=str(DEFAULT_MAX_TOKENS))
         tk.Entry(token_col, textvariable=self.tokens_var, bg=self.colors["surface"], fg=self.colors["text"], width=15).pack(fill="x", ipady=3)
 
+        # Odoo Toggle
+        self.odoo_cb = tk.Checkbutton(adv_frame2, text="Optimize for Odoo", variable=self.odoo_var, 
+                                           bg=self.colors["base"], fg=self.colors["gold"], 
+                                           selectcolor=self.colors["surface"], activebackground=self.colors["base"], 
+                                           font=("Segoe UI", 10, "bold"), command=self.on_odoo_toggle)
+        self.odoo_cb.pack(side="left", padx=10)
+
         # NotebookLM Toggle
-        self.notebooklm_var = tk.BooleanVar(value=False)
         self.notebooklm_cb = tk.Checkbutton(adv_frame2, text="Optimize for NotebookLM", variable=self.notebooklm_var, 
                                            bg=self.colors["base"], fg=self.colors["iris"], 
                                            selectcolor=self.colors["surface"], activebackground=self.colors["base"], 
@@ -252,8 +261,25 @@ class RepoToMDApp:
         else:
             messagebox.showinfo("Hint", "Browse is only for Local Folders. For Git or Web, please paste the URL.")
 
+    def on_odoo_toggle(self):
+        if self.odoo_var.get():
+            self.notebooklm_var.set(False)
+            self.format_var.set("xml")
+            self.split_var.set("200")
+            self.tokens_var.set("500000")
+            # Select Odoo extensions
+            for ext in ODOO_SELECTED_EXTENSIONS:
+                if ext in self.ext_vars:
+                    self.ext_vars[ext].set(True)
+            # Update extension immediately
+            self.update_output_extension()
+
+        # Also refresh name logic
+        self.on_path_change()
+
     def on_notebooklm_toggle(self):
         if self.notebooklm_var.get():
+            self.odoo_var.set(False)
             self.format_var.set("xml")
             self.split_var.set("200")
             self.tokens_var.set("500000")
@@ -265,21 +291,19 @@ class RepoToMDApp:
             self.tokens_var.set("500000")
             # Update extension immediately
             self.update_output_extension()
-        
+
         # Also refresh name logic
         self.on_path_change()
-
     def update_output_extension(self, *args):
         fmt = self.format_var.get()
         current_name = self.output_var.get()
-        
-        if self.notebooklm_var.get():
-            # For NotebookLM, we force .txt because they don't accept .xml
+
+        if self.notebooklm_var.get() or self.odoo_var.get():
+            # For NotebookLM/Odoo, we force .txt because they don't accept .xml
             new_ext = ".txt"
         else:
             ext_map = {"xml": ".xml", "markdown": ".md", "json": ".json", "plain-text": ".txt"}
             new_ext = ext_map.get(fmt, ".md")
-        
         # Only update if the base name exists
         base, old_ext = os.path.splitext(current_name)
         # If it's a double extension like .xml.txt, handle it
@@ -350,6 +374,12 @@ class RepoToMDApp:
             if self.notebooklm_var.get():
                 repo_name = get_repo_name(path_val)
                 header_text = NOTEBOOKLM_HEADER_TEMPLATE.format(
+                    repo_name=repo_name,
+                    date=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                )
+            elif self.odoo_var.get():
+                repo_name = get_repo_name(path_val)
+                header_text = ODOO_HEADER_TEMPLATE.format(
                     repo_name=repo_name,
                     date=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 )
