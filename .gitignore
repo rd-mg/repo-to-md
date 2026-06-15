@@ -1,0 +1,12 @@
+.atl/
+md-created/
+__pycache__/
+*.pyc
+.coverage
+.omo/
+.pytest_cache/
+.codegraph/
+skills-lock.json
+repomix-output.*
+.env
+.DS_Store

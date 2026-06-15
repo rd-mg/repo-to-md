@@ -1,0 +1,9 @@
+flet
+httpx
+trafilatura
+beautifulsoup4
+playwright
+fake-useragent
+tiktoken
+nbformat
+nbconvert
