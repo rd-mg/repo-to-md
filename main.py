@@ -504,25 +504,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = RepoToMDApp(root)
     root.mainloop()
-op()
-h(self):
-        self.clipboard_clear()
-        self.clipboard_append(self.output_path)
-        messagebox.showinfo("Copied", "Path copied to clipboard!")
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = RepoToMDApp(root)
-    root.mainloop()
-ion as e:
-            messagebox.showerror("Error", f"Could not open folder: {str(e)}")
-
-    def copy_path(self):
-        self.clipboard_clear()
-        self.clipboard_append(self.output_path)
-        messagebox.showinfo("Copied", "Path copied to clipboard!")
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = RepoToMDApp(root)
-    root.mainloop()
